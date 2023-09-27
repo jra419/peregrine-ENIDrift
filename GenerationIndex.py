@@ -2,7 +2,6 @@ from scipy.stats import f
 from scipy.stats import chi2
 from numpy import *
 from .SubLearner import *
-from .measure import *
 
 class G_index():
 
