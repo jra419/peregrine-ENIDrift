@@ -18,13 +18,17 @@ class ensemble():
 
     def sub_predict(self, x):
         pred_raw = 0
+        score_total = 0
         for i in range(len(self.detector_pool)):
             score_reshaped = self.detector_pool[i].score(x.reshape(1, -1))
+            score_total += score_reshaped*self.weight_list[i]
             if self.threshold_list[i] <= score_reshaped:
                 pred_raw = pred_raw + self.weight_list[i]
             else:
                 pred_raw = pred_raw - self.weight_list[i]
-        return pred_raw
+        if len(self.detector_pool) > 0:
+            score_total = abs(score_total / len(self.detector_pool))
+        return [pred_raw, score_total]
 
     def adjust(self, x, update=True):
         if update == True:
@@ -98,11 +102,11 @@ class dual_ensemble():
         prob_n = self.dual_normal.sub_predict(x)
 
         # attack
-        if prob_n <= 0:
-            return [prob_n, 1]
+        if prob_n[0] <= 0:
+            return [prob_n[0], 1, prob_n[1]]
         # normal
         else:
-            return [prob_n, 0]
+            return [prob_n[0], 0, prob_n[1]]
 
     def generate(self, target, x):
         self.dual_normal.adjust(x, update=True)
